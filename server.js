@@ -9,6 +9,7 @@ const moodRoutes=require('./routes/mood');
 const cycleRoutes=require('./routes/cycle')
 const chatRoutes=require('./routes/chat')
 const insightRoutes=require('./routes/insights')
+const symptomRoutes=require('./routes/symptoms');
 const errorMiddleware = require('./middlewares/errorMiddleware')
 
 const app = express()
@@ -25,6 +26,7 @@ app.use('/mood',moodRoutes);
 app.use('/cycles',cycleRoutes);
 app.use('/chat',chatRoutes);
 app.use('/insights',insightRoutes);
+app.use('/symptoms',symptomRoutes);
 
 
 app.use(errorMiddleware)
