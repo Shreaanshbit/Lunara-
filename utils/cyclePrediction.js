@@ -27,12 +27,13 @@ exports.getFertileWindow = (ovulationDate) => {
   return { start, end }
 }
 
-exports.getCyclePhase = (periodStart, avgCycleLength, date = new Date()) => {
-  const day = Math.floor((date - periodStart) / MS_IN_DAY) + 1
-  const ovulationDay = avgCycleLength - 14
+exports.getCyclePhase = (periodStart, avgCycleLength, today = new Date()) => {
+  const day = Math.floor((today - periodStart) / MS_IN_DAY) + 1
 
+  if (day <= 0) return 'unknown'
   if (day <= 5) return 'menstrual'
-  if (day < ovulationDay) return 'follicular'
-  if (day === ovulationDay) return 'ovulatory'
-  return 'luteal'
+  if (day < avgCycleLength - 14) return 'follicular'
+  if (day <= avgCycleLength - 12) return 'ovulatory'
+  if (day <= avgCycleLength) return 'luteal'
+  return 'menstrual'
 }

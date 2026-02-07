@@ -90,3 +90,22 @@ exports.getCurrentCycleInsight = async (req, res, next) => {
     next(err)
   }
 }
+
+exports.getCurrentCyclePhase = async (req, res, next) => {
+  try {
+    const cycles = await Cycle.find({ user: req.user._id }).sort({
+      periodStart: -1
+    })
+
+    if (!cycles.length) {
+      return res.json({ success: true, phase: null })
+    }
+
+    const avgCycleLength = calculateAverageCycle(cycles)
+    const phase = getCyclePhase(cycles[0].periodStart, avgCycleLength)
+
+    res.json({ success: true, phase })
+  } catch (err) {
+    next(err)
+  }
+}
