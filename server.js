@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth')
 const moodRoutes=require('./routes/mood');
 const cycleRoutes=require('./routes/cycle')
 const chatRoutes=require('./routes/chat')
+const insightRoutes=require('./routes/insights')
 const errorMiddleware = require('./middlewares/errorMiddleware')
 
 const app = express()
@@ -22,7 +23,8 @@ app.get('/health', (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/mood',moodRoutes);
 app.use('/cycles',cycleRoutes);
-app.use('/chat',chatRoutes)
+app.use('/chat',chatRoutes);
+app.use('/insights',insightRoutes);
 
 
 app.use(errorMiddleware)
