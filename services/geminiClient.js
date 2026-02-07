@@ -20,3 +20,30 @@ User message: "${message}"
 
   return response.text
 }
+
+exports.extractSymptoms = async ({ message }) => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: `
+Extract symptoms and mood from the text below.
+Use basic medical terms.
+Return ONLY valid JSON.
+
+JSON format:
+{
+  "mood": string | null,
+  "symptoms": string[],
+  "intensity": number | null
+}
+
+Text:
+"${message}"
+`
+  })
+
+  try {
+    return JSON.parse(response.text)
+  } catch {
+    return null
+  }
+}

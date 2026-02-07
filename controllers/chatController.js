@@ -2,6 +2,8 @@ const ChatSession = require('../models/ChatSession')
 const Cycle = require('../models/Cycle')
 const { generateChatResponse } = require('../services/geminiClient')
 const { calculateAverageCycle, getCyclePhase } = require('../utils/cyclePrediction')
+const { extractSymptoms }=require('../services/geminiClient');
+const SymptomLog=require('../models/SymptomLog');
 
 exports.chatWithLunara = async (req, res, next) => {
   try {
@@ -35,6 +37,16 @@ exports.chatWithLunara = async (req, res, next) => {
     session.messages.push({ role: 'assistant', content: reply })
     await session.save()
 
+    const extracted = await extractSymptoms({ message })
+
+    if (extracted && (extracted.mood || extracted.symptoms?.length)) {
+    await SymptomLog.create({
+        user: req.user._id,
+        mood: extracted.mood,
+        symptoms: extracted.symptoms || [],
+        intensity: extracted.intensity
+    })
+    }
     res.json({
       success: true,
       reply,
