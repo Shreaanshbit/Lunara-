@@ -5,7 +5,8 @@ const {
   predictNextPeriod,
   calculateOvulationDate,
   getFertileWindow,
-  getCyclePhase
+  getCyclePhase,
+  getPredictionConfidence
 } = require('../utils/cyclePrediction')
 
 exports.addCycle = async (req, res, next) => {
@@ -78,13 +79,14 @@ exports.getCurrentCycleInsight = async (req, res, next) => {
     const phase = getCyclePhase(latest.periodStart, avgCycleLength)
     const ovulationDate = calculateOvulationDate(latest.predictedNextPeriod)
     const fertileWindow = getFertileWindow(ovulationDate)
+    const confidence = getPredictionConfidence(cycles)
 
     res.json({
       success: true,
-      phase,
+      currentPhase: phase,
       predictedNextPeriod: latest.predictedNextPeriod,
       fertileWindow,
-      confidence: cycles.length >= 3 ? 'medium' : 'low'
+      confidence
     })
   } catch (err) {
     next(err)

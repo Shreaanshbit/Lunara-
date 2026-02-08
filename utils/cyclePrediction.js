@@ -1,39 +1,47 @@
-const MS_IN_DAY = 1000 * 60 * 60 * 24
+const MS_PER_DAY = 1000 * 60 * 60 * 24
 
-const average = (arr) =>
-  Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
+const daysBetween = (a, b) =>
+  Math.round((b.getTime() - a.getTime()) / MS_PER_DAY)
 
-exports.calculateCycleLength = (start, end) => {
-  return Math.round((end - start) / MS_IN_DAY)
+exports.calculateCycleLength = (start, end) =>
+  daysBetween(start, end)
+
+exports.calculateAverageCycle = cycles => {
+  if (!cycles.length) return 28
+
+  const weighted = cycles
+    .slice(-6)
+    .map((c, i) => c.cycleLength * (i + 1))
+
+  const weightSum = weighted.reduce((a, b) => a + b, 0)
+  const divisor = (weighted.length * (weighted.length + 1)) / 2
+
+  return Math.round(weightSum / divisor)
 }
 
-exports.calculateAverageCycle = (cycles) => {
-  if (cycles.length === 0) return 28
-  const lengths = cycles.map(c => c.cycleLength)
-  return average(lengths.slice(-6))
-}
+exports.predictNextPeriod = (lastStart, avgCycleLength) =>
+  new Date(lastStart.getTime() + avgCycleLength * MS_PER_DAY)
 
-exports.predictNextPeriod = (lastStart, avgCycleLength) => {
-  return new Date(lastStart.getTime() + avgCycleLength * MS_IN_DAY)
-}
+exports.calculateOvulationDate = nextPeriod =>
+  new Date(nextPeriod.getTime() - 14 * MS_PER_DAY)
 
-exports.calculateOvulationDate = (nextPeriod) => {
-  return new Date(nextPeriod.getTime() - 14 * MS_IN_DAY)
-}
+exports.getFertileWindow = ovulation => ({
+  start: new Date(ovulation.getTime() - 5 * MS_PER_DAY),
+  end: new Date(ovulation.getTime() + 1 * MS_PER_DAY)
+})
 
-exports.getFertileWindow = (ovulationDate) => {
-  const start = new Date(ovulationDate.getTime() - 5 * MS_IN_DAY)
-  const end = new Date(ovulationDate.getTime() + 1 * MS_IN_DAY)
-  return { start, end }
-}
+exports.getCyclePhase = (lastPeriodStart, avgCycleLength) => {
+  const today = new Date()
+  const day = daysBetween(lastPeriodStart, today)
 
-exports.getCyclePhase = (periodStart, avgCycleLength, today = new Date()) => {
-  const day = Math.floor((today - periodStart) / MS_IN_DAY) + 1
-
-  if (day <= 0) return 'unknown'
   if (day <= 5) return 'menstrual'
-  if (day < avgCycleLength - 14) return 'follicular'
-  if (day <= avgCycleLength - 12) return 'ovulatory'
-  if (day <= avgCycleLength) return 'luteal'
-  return 'menstrual'
+  if (day <= avgCycleLength * 0.45) return 'follicular'
+  if (day <= avgCycleLength * 0.6) return 'ovulatory'
+  return 'luteal'
+}
+
+exports.getPredictionConfidence = cycles => {
+  if (cycles.length >= 6) return 'high'
+  if (cycles.length >= 3) return 'medium'
+  return 'low'
 }
