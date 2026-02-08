@@ -1,5 +1,6 @@
 const ChatSession = require('../models/ChatSession')
 const Cycle = require('../models/Cycle')
+const { getCycleSymptomInsightsInternal } = require('../utils/insightHelper')
 const { generateChatResponse } = require('../services/geminiClient')
 const { calculateAverageCycle, getCyclePhase } = require('../utils/cyclePrediction')
 const { extractSymptoms }=require('../services/geminiClient');
@@ -27,11 +28,29 @@ exports.chatWithLunara = async (req, res, next) => {
       ? getCyclePhase(cycles[0].periodStart, avgCycleLength)
       : 'unknown'
 
+    const insight = await getCycleSymptomInsightsInternal(req.user._id)
+    let insightContext = ''
+
+    if (insight && insight.currentPhase === phase) {
+      const patterns = [
+        ...(insight.topSymptoms || []),
+        insight.topMood
+      ].filter(Boolean)
+
+      if (patterns.length) {
+        insightContext = `
+      The user often experiences ${patterns.join(', ')} during this phase.
+      Acknowledge this gently if relevant.
+      `
+      }
+    }
+
     session.messages.push({ role: 'user', content: message })
 
     const reply = await generateChatResponse({
       message,
-      phase
+      phase,
+      insightContext
     })
 
     session.messages.push({ role: 'assistant', content: reply })
