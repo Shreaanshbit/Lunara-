@@ -44,7 +44,7 @@ exports.chatWithLunara = async (req, res, next) => {
         user: req.user._id,
         mood: extracted.mood,
         symptoms: extracted.symptoms || [],
-        intensity: extracted.intensity
+        // intensity: extracted.intensity
     })
     }
     res.json({
